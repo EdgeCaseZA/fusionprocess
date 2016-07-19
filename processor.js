@@ -33,7 +33,7 @@ module.exports = {
       callback.result(cb, commitToken);
     });
   },
-  downloadImages(xml, localpath, limit, cb) {
+  downloadImages(xml, localpath, limit, mapperFn, cb) {
     const retry = (img, cb) => {
       callback.error(cb, img.err);
       if (img.chances > 0) {
@@ -51,7 +51,12 @@ module.exports = {
       if (!fs.existsSync(localpath)) {
         fs.mkdirSync(localpath);
       }
-      matches.forEach((u) => {
+      matches.map((u) => {
+        if (typeof mapperFn === 'function') {
+          return mapperFn(u);
+        }
+        return u;
+      }).forEach((u) => {
         if (u) {
           const localfilename = path.join(localpath, path.basename(url.parse(u).pathname));
           request.get(u)
