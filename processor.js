@@ -30,7 +30,7 @@ module.exports = {
     const retry = (img, cb) => {
       cb(img.err);
       if (img.chances > 0) {
-        img.changes--;
+        img.chances--;
         request.get(img.url)
         .on('error', (err) => {
           img.err = err;
