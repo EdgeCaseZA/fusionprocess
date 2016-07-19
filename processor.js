@@ -33,14 +33,16 @@ module.exports = {
       }
       matches.forEach((u) => {
         const localfilename = path.join(localpath, path.basename(url.parse(u).pathname));
-        request.get(u)
-        .on('error', (err) => {
-          cb(err);
-        })
-        .on('response', (res) => {
-          cb(null, `Downloaded ${u}. Status ${res.statusCode} , Type ${res.headers['content-type']}`);
-        })
-        .pipe(fs.createWriteStream(localfilename))
+        if (u) {
+          request.get(u)
+          .on('error', (err) => {
+            cb(err);
+          })
+          .on('response', (res) => {
+            cb(null, `Downloaded ${u}. Status ${res.statusCode} , Type ${res.headers['content-type']}`);
+          })
+          .pipe(fs.createWriteStream(localfilename));
+        }
       });
     });
   },
