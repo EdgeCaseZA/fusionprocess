@@ -1,0 +1,46 @@
+{
+  "name": "fusionprocess",
+  "version": "1.0.0",
+  "description": "Process XML received from Fusion SyncStore",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "bin": {
+    "fusionprocess": "index.js"
+  },
+  "author": "EdgeCase Software",
+  "license": "UNLICENSED",
+  "engines": {
+    "node": ">=5.11.0"
+  },
+  "eslintConfig": {
+    "parser": "babel-eslint",
+    "parserOptions": {
+      "allowImportExportEverywhere": true
+    },
+    "extends": [
+      "airbnb"
+    ],
+    "rules": {
+      "strict": 0,
+      "no-console": 0
+    }
+  },
+  "dependencies": {
+    "chalk": "^1.1.3",
+    "commander": "^2.9.0",
+    "path": "^0.12.7",
+    "request": "^2.73.0",
+    "xml2js": "^0.4.17",
+    "xml2js-xpath": "^0.7.0"
+  },
+  "devDependencies": {
+    "babel-eslint": "^6.1.2",
+    "eslint": "^3.1.1",
+    "eslint-config-airbnb": "^9.0.1",
+    "eslint-plugin-import": "^1.11.0",
+    "eslint-plugin-jsx-a11y": "^2.0.1",
+    "eslint-plugin-react": "^5.2.2"
+  }
+}
