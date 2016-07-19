@@ -30,10 +30,6 @@ if (!process.stdin.isTTY) {
     // Do some processing
     processor.size(data, logResult);
     processor.extractToken(data, logResult);
-    // processor.downloadImages(data, 'out/', 100, null, logResult); // download from azure blob storage
-    processor.downloadImages(data, 'out/', 100, (u) => { // download from azure blob storage via fusion proxy
-      const mapped = u.replace('https://fusionstoragelive.blob.core.windows.net/images/Listing', 'https://za.fusionagency.net/Data/ListingPhotos');
-      return mapped;
-    }, logResult);
+    processor.downloadImages(data, 'out/', 100, null, logResult); // download from azure blob storage
   });
 }
