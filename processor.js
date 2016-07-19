@@ -11,37 +11,38 @@ const parser = new xml2js.Parser({
   mergeAttrs: true,
 });
 
+const callback = {
+  error(cb, err) {
+    if (err && typeof cb === 'function') cb(err);
+    return !!err;
+  },
+  result(cb, res) {
+    if (typeof cb === 'function') cb(null, res);
+  },
+};
+
 module.exports = {
   size(xml, cb) {
-    cb(null, (xml || '').length);
+    callback.result(cb, (xml || '').length);
   },
   extractToken(xml, cb) {
     parser.parseString(xml, (err, result) => {
-      if (err && typeof cb === 'function') {
-        cb(err);
-        return;
-      }
+      if (callback.error(cb, err)) return;
       const changes = result.Changes;
       const commitToken = changes && changes.commitToken ? changes.commitToken[0] : '';
-      if (typeof cb === 'function') cb(null, commitToken);
+      callback.result(cb, commitToken);
     });
   },
   downloadImages(xml, localpath, limit, cb) {
     const retry = (img, cb) => {
-      cb(img.err);
+      callback.error(cb, img.err);
       if (img.chances > 0) {
-        img.chances--;
         request.get(img.url)
-        .on('error', (err) => {
-          img.err = err;
-          retry(img, cb);
-        })
-        .on('response', (res) => {
-          cb(null, `Retrying download for ${img.url}, ${img.chances} retries remaining...`);
-        })
+        .on('error', (err) => retry({ url: img.url, localfilename: img.localfilename, chances: img.chances - 1, err }, cb))
+        .on('response', () => callback.result(cb, `Retrying download for ${img.url}, ${img.chances - 1} retries remaining...`))
         .pipe(fs.createWriteStream(img.localfilename));
       } else {
-        cb(`Giving up on ${img.url}.`);
+        callback.error(cb, `Giving up on ${img.url}.`);
       }
     };
     parser.parseString(xml, (err, result) => {
@@ -54,12 +55,8 @@ module.exports = {
         if (u) {
           const localfilename = path.join(localpath, path.basename(url.parse(u).pathname));
           request.get(u)
-          .on('error', (err) => {
-            retry({ url: u, localfilename, chances: RETRIES, err }, cb);
-          })
-          .on('response', (res) => {
-            cb(null, `Downloading ${u}...`);
-          })
+          .on('error', (err) => retry({ url: u, localfilename, chances: RETRIES, err }, cb))
+          .on('response', () => callback.result(cb, `Downloading ${u}...`))
           .pipe(fs.createWriteStream(localfilename));
         }
       });
