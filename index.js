@@ -7,7 +7,7 @@ const chalk = require('chalk');
 
 const logResult = (err, result) => {
   if (err) {
-    console.log(chalk.red('ERR!') + err);
+    console.log(chalk.red('ERR! ') + err);
     return;
   }
   console.log(result);

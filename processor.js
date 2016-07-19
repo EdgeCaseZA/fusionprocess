@@ -5,6 +5,8 @@ const fs = require('fs');
 const url = require('url');
 const path = require('path');
 
+const RETRIES = 3;
+
 const parser = new xml2js.Parser({
   mergeAttrs: true,
 });
@@ -25,6 +27,23 @@ module.exports = {
     });
   },
   downloadImages(xml, localpath, limit, cb) {
+    const retry = (img, cb) => {
+      cb(img.err);
+      if (img.chances > 0) {
+        img.changes--;
+        request.get(img.url)
+        .on('error', (err) => {
+          img.err = err;
+          retry(img, cb);
+        })
+        .on('response', (res) => {
+          cb(null, `Retrying download for ${img.url}, ${img.chances} retries remaining...`);
+        })
+        .pipe(fs.createWriteStream(img.localfilename));
+      } else {
+        cb(`Giving up on ${img.url}.`);
+      }
+    };
     parser.parseString(xml, (err, result) => {
       const matches = xpath.find(result, '//Photo/url');
       if (limit > 0) matches.splice(limit);
@@ -32,14 +51,14 @@ module.exports = {
         fs.mkdirSync(localpath);
       }
       matches.forEach((u) => {
-        const localfilename = path.join(localpath, path.basename(url.parse(u).pathname));
         if (u) {
+          const localfilename = path.join(localpath, path.basename(url.parse(u).pathname));
           request.get(u)
           .on('error', (err) => {
-            cb(err);
+            retry({ url: u, localfilename, chances: RETRIES, err }, cb);
           })
           .on('response', (res) => {
-            cb(null, `Downloaded ${u}. Status ${res.statusCode} , Type ${res.headers['content-type']}`);
+            cb(null, `Downloading ${u}...`);
           })
           .pipe(fs.createWriteStream(localfilename));
         }
